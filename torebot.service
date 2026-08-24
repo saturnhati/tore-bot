@@ -1,0 +1,18 @@
+[Unit]
+Description=Bot Telegram dispensa (traccia cibo e suggerisce ricette)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/tore-bot
+ExecStart=/usr/bin/node dist/bot.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+ReadWritePaths=/home/ubuntu/tore-bot/data /home/ubuntu/tore-bot/backups
+
+[Install]
+WantedBy=multi-user.target
