@@ -22,17 +22,33 @@ export interface InventoryEvent {
   created_at: string;
 }
 
-export type IntentName = "add" | "open" | "consume" | "remove" | "list" | "suggest" | "unknown";
+export type IntentName =
+  | "add"
+  | "open"
+  | "consume"
+  | "remove"
+  | "list"
+  | "suggest"
+  | "note"
+  | "chat";
 
 export interface IntentItem {
   name: string;
   quantity?: string | null;
   location?: string | null;
   shelf_days_after_open?: number | null;
+  opened_days_ago?: number | null;
 }
 
 export interface Intent {
   intent: IntentName;
   items: IntentItem[];
   query: string;
+  note: string;
+}
+
+export interface Note {
+  id: number;
+  content: string;
+  created_at: string;
 }

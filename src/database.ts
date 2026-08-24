@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { config } from "./config";
-import type { EventType, InventoryEvent, Item, Location } from "./types";
+import type { EventType, InventoryEvent, Item, Location, Note } from "./types";
 
 let db: Database.Database;
 
@@ -27,6 +27,11 @@ export function init(): void {
       item_name TEXT NOT NULL,
       type TEXT NOT NULL,
       note TEXT,
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      content TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
   `);
@@ -79,12 +84,17 @@ export function findItemsByName(name: string): Item[] {
     .all(n) as Item[];
 }
 
-export function openItem(id: number, shelfDays: number | null = null): Item | undefined {
+export function openItem(
+  id: number,
+  opts: { shelfDays?: number | null; openedAt?: string | null } = {},
+): Item | undefined {
   const item = getItem(id);
   if (!item) return undefined;
+  const openedAt = opts.openedAt ?? now();
+  const shelfDays = opts.shelfDays ?? item.shelf_days_after_open;
   db.prepare("UPDATE items SET opened_at = ?, shelf_days_after_open = ? WHERE id = ?").run(
-    now(),
-    shelfDays ?? item.shelf_days_after_open,
+    openedAt,
+    shelfDays,
     id,
   );
   logEvent(item.name, "opened", shelfDays ? `dura ${shelfDays} giorni da aperto` : null);
@@ -120,6 +130,26 @@ export function recentEvents(limit = 20): InventoryEvent[] {
 export function countItems(): number {
   const row = db.prepare("SELECT COUNT(*) AS n FROM items").get() as { n: number };
   return row.n;
+}
+
+export function addNote(content: string): Note {
+  const info = db
+    .prepare("INSERT INTO notes (content, created_at) VALUES (?, ?)")
+    .run(content.trim(), now());
+  return getNote(Number(info.lastInsertRowid))!;
+}
+
+export function getNote(id: number): Note | undefined {
+  return db.prepare("SELECT * FROM notes WHERE id = ?").get(id) as Note | undefined;
+}
+
+export function listNotes(): Note[] {
+  return db.prepare("SELECT * FROM notes ORDER BY id").all() as Note[];
+}
+
+export function deleteNote(id: number): boolean {
+  const info = db.prepare("DELETE FROM notes WHERE id = ?").run(id);
+  return info.changes > 0;
 }
 
 export function close(): void {
