@@ -5,6 +5,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+echo "→ cartelle dati"
+mkdir -p data backups
+
 echo "→ scarico le modifiche da GitHub"
 git pull --rebase --autostash
 

@@ -112,6 +112,9 @@ npm run build
 # Crea .env con i tuoi valori reali (non committarli!)
 cp .env.example .env && nano .env
 
+# Crea le cartelle dati (richieste dal servizio systemd)
+mkdir -p data backups
+
 # Installa come servizio systemd
 sudo cp torebot.service /etc/systemd/system/
 sudo systemctl daemon-reload
